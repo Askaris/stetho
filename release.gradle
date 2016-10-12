@@ -6,15 +6,15 @@ def isReleaseBuild() {
 }
 
 def getRepositoryUrl() {
-    return hasProperty('repositoryUrl') ? property('repositoryUrl') : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    return "http://172.16.11.60:8081/artifactory/libs-3p-snapshot-local/"
 }
 
 def getRepositoryUsername() {
-    return hasProperty('repositoryUsername') ? property('repositoryUsername') : ""
+    return hasProperty('nexusUser') ? property('nexusUser') : ""
 }
 
 def getRepositoryPassword() {
-    return hasProperty('repositoryPassword') ? property('repositoryPassword') : ""
+    return hasProperty('nexusPass') ? property('nexusPass') : ""
 }
 
 def configureStethoPom(def pom) {

@@ -9,21 +9,11 @@
 
 package com.facebook.stetho.inspector.protocol.module;
 
-import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
-
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.os.Build;
-
-import com.facebook.stetho.common.Util;
 import com.facebook.stetho.inspector.helper.ChromePeerManager;
 import com.facebook.stetho.inspector.helper.PeerRegistrationListener;
 import com.facebook.stetho.inspector.jsonrpc.JsonRpcException;
@@ -34,24 +24,16 @@ import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
-
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Database implements ChromeDevtoolsDomain {
-  /**
-   * The protocol doesn't offer an efficient means of pagination or anything like that so
-   * we'll just cap the result list to some arbitrarily large number that I think folks will
-   * actually need in practice.
-   * <p>
-   * Note that when this limit is exceeded, a dummy row will be introduced that indicates
-   * truncation occurred.
-   */
-  private static final int MAX_EXECUTE_RESULTS = 250;
 
   /**
    * Maximum length of a BLOB field before we stop trying to interpret it and just
@@ -143,7 +125,7 @@ public class Database implements ChromeDevtoolsDomain {
         public ExecuteSQLResponse handleSelect(Cursor result) throws SQLiteException {
           ExecuteSQLResponse response = new ExecuteSQLResponse();
           response.columnNames = Arrays.asList(result.getColumnNames());
-          response.values = flattenRows(result, MAX_EXECUTE_RESULTS);
+          response.values = flattenRows(result);
           return response;
         }
 
@@ -187,15 +169,13 @@ public class Database implements ChromeDevtoolsDomain {
    * interpreted meaningfully without the number of columns.
    *
    * @param cursor
-   * @param limit Maximum number of rows to process.
    * @return List of Java primitives matching the value type of each column, converted to
    *      strings.
    */
-  private static ArrayList<String> flattenRows(Cursor cursor, int limit) {
-    Util.throwIfNot(limit >= 0);
+  private static ArrayList<String> flattenRows(Cursor cursor) {
     ArrayList<String> flatList = new ArrayList<>();
     final int numColumns = cursor.getColumnCount();
-    for (int row = 0; row < limit && cursor.moveToNext(); row++) {
+    for (int row = 0; cursor.moveToNext(); row++) {
       for (int column = 0; column < numColumns; column++) {
         switch (cursor.getType(column)) {
           case Cursor.FIELD_TYPE_NULL:
